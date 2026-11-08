@@ -2026,95 +2026,91 @@ local function refreshPlayersList(mode)
 
         if success and rawData and rawData ~= "null" then
             local decoded = HttpService:JSONDecode(rawData)
-            local now = os.time()
             local count = 0
 
             if typeof(decoded) == "table" then
+                -- عرض جميع اللاعبين المسجلين في قاعدة البيانات بدون شرط الوقت (لكي لا يختفي أحد سواء دخل قبلك أو بعدك)
                 for targetUid, userData in pairs(decoded) do
-                    local lastSeen = userData.last_seen or 0
-                    -- تم رفع المهلة إلى 120 ثانية لضمان ظهور الجميع (سواء دخلو قبلك أو بعدك) ومنع اختفائهم
-                    if (now - lastSeen) <= 120 then
-                        local isSameServer = (userData.job_id == game.JobId)
-                        local nameToShow = userData.display_name or userData.username or ("User_" .. tostring(targetUid))
-                        local actualUsername = userData.username or nameToShow
+                    local isSameServer = (userData.job_id == game.JobId)
+                    local nameToShow = userData.display_name or userData.username or ("User_" .. tostring(targetUid))
+                    local actualUsername = userData.username or nameToShow
 
-                        local shouldShow = false
-                        if currentMode == "all" then
+                    local shouldShow = false
+                    if currentMode == "all" then
+                        shouldShow = true
+                    elseif currentMode == "server" then
+                        if isSameServer or (game.JobId == "" and Players:FindFirstChild(actualUsername)) then
                             shouldShow = true
-                        elseif currentMode == "server" then
-                            if isSameServer or (game.JobId == "" and Players:FindFirstChild(actualUsername)) then
-                                shouldShow = true
-                            end
                         end
+                    end
 
-                        if shouldShow and query ~= "" then
-                            local cleanName = string.lower(actualUsername)
-                            local cleanDisplay = string.lower(nameToShow)
-                            if string.sub(cleanName, 1, #query) ~= query and string.sub(cleanDisplay, 1, #query) ~= query then
-                                shouldShow = false
-                            end
+                    if shouldShow and query ~= "" then
+                        local cleanName = string.lower(actualUsername)
+                        local cleanDisplay = string.lower(nameToShow)
+                        if string.sub(cleanName, 1, #query) ~= query and string.sub(cleanDisplay, 1, #query) ~= query then
+                            shouldShow = false
                         end
+                    end
 
-                        if shouldShow then
-                            count = count + 1
-                            local pItem = Instance.new("Frame", P6_ScrollList)
-                            pItem.Size = UDim2.new(1, -6, 0, 34)
-                            pItem.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                            pItem.ZIndex = 32
+                    if shouldShow then
+                        count = count + 1
+                        local pItem = Instance.new("Frame", P6_ScrollList)
+                        pItem.Size = UDim2.new(1, -6, 0, 34)
+                        pItem.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                        pItem.ZIndex = 32
 
-                            Instance.new("UICorner", pItem).CornerRadius = UDim.new(0, 6)
+                        Instance.new("UICorner", pItem).CornerRadius = UDim.new(0, 6)
 
-                            local pLbl = Instance.new("TextLabel", pItem)
-                            pLbl.Size = UDim2.new(0.72, 0, 1, 0)
-                            pLbl.Position = UDim2.new(0.03, 0, 0, 0)
-                            pLbl.BackgroundTransparency = 1
-                            pLbl.Font = Enum.Font.GothamBold
-                            pLbl.Text = nameToShow .. " (@" .. actualUsername .. ")" .. (isSameServer and " [سيرفرك]" or "")
-                            pLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            pLbl.TextSize = 11
-                            pLbl.TextXAlignment = Enum.TextXAlignment.Left
-                            pLbl.ZIndex = 33
-                            pLbl.ClipsDescendants = true
-                            pLbl.TextTruncate = Enum.TextTruncate.AtEnd
+                        local pLbl = Instance.new("TextLabel", pItem)
+                        pLbl.Size = UDim2.new(0.72, 0, 1, 0)
+                        pLbl.Position = UDim2.new(0.03, 0, 0, 0)
+                        pLbl.BackgroundTransparency = 1
+                        pLbl.Font = Enum.Font.GothamBold
+                        pLbl.Text = nameToShow .. " (@" .. actualUsername .. ")" .. (isSameServer and " [سيرفرك]" or "")
+                        pLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        pLbl.TextSize = 11
+                        pLbl.TextXAlignment = Enum.TextXAlignment.Left
+                        pLbl.ZIndex = 33
+                        pLbl.ClipsDescendants = true
+                        pLbl.TextTruncate = Enum.TextTruncate.AtEnd
 
-                            local kickBtn = Instance.new("TextButton", pItem)
-                            kickBtn.Size = UDim2.new(0.22, 0, 0.75, 0)
-                            kickBtn.Position = UDim2.new(0.76, 0, 0.125, 0)
-                            kickBtn.BackgroundColor3 = Color3.fromRGB(230, 40, 40)
-                            kickBtn.Font = Enum.Font.GothamBold
-                            kickBtn.Text = "طرد"
-                            kickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            kickBtn.TextSize = 12
-                            kickBtn.ZIndex = 33
+                        local kickBtn = Instance.new("TextButton", pItem)
+                        kickBtn.Size = UDim2.new(0.22, 0, 0.75, 0)
+                        kickBtn.Position = UDim2.new(0.76, 0, 0.125, 0)
+                        kickBtn.BackgroundColor3 = Color3.fromRGB(230, 40, 40)
+                        kickBtn.Font = Enum.Font.GothamBold
+                        kickBtn.Text = "طرد"
+                        kickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        kickBtn.TextSize = 12
+                        kickBtn.ZIndex = 33
 
-                            Instance.new("UICorner", kickBtn).CornerRadius = UDim.new(0, 4)
+                        Instance.new("UICorner", kickBtn).CornerRadius = UDim.new(0, 4)
 
-                            kickBtn.MouseButton1Click:Connect(function()
-                                kickBtn.Text = "جاري..."
-                                kickBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+                        kickBtn.MouseButton1Click:Connect(function()
+                            kickBtn.Text = "جاري..."
+                            kickBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 
-                                task.spawn(function()
-                                    if httpReq then
-                                        pcall(function()
-                                            httpReq({
-                                                Url = FIREBASE_URL .. "/kicks/" .. tostring(targetUid) .. ".json",
-                                                Method = "PUT",
-                                                Headers = {["Content-Type"] = "application/json"},
-                                                Body = HttpService:JSONEncode({
-                                                    kicked = true,
-                                                    time = os.time()
-                                                })
+                            task.spawn(function()
+                                if httpReq then
+                                    pcall(function()
+                                        httpReq({
+                                            Url = FIREBASE_URL .. "/kicks/" .. tostring(targetUid) .. ".json",
+                                            Method = "PUT",
+                                            Headers = {["Content-Type"] = "application/json"},
+                                            Body = HttpService:JSONEncode({
+                                                kicked = true,
+                                                time = os.time()
                                             })
-                                        end)
+                                        })
+                                    end)
 
-                                        kickBtn.Text = "تم!"
-                                        kickBtn.BackgroundColor3 = Color3.fromRGB(80, 200, 80)
-                                        task.wait(1)
-                                        refreshPlayersList()
-                                    end
-                                end)
+                                    kickBtn.Text = "تم!"
+                                    kickBtn.BackgroundColor3 = Color3.fromRGB(80, 200, 80)
+                                    task.wait(1)
+                                    refreshPlayersList()
+                                end
                             end)
-                        end
+                        end)
                     end
                 end
             end
@@ -2158,13 +2154,10 @@ local function fetchOnlineUsers()
         if success and rawData and rawData ~= "null" then
             local decoded = HttpService:JSONDecode(rawData)
             local activeCount = 0
-            local now = os.time()
 
             if typeof(decoded) == "table" then
-                for _, userData in pairs(decoded) do
-                    if userData.last_seen and (now - userData.last_seen) <= 120 then
-                        activeCount = activeCount + 1
-                    end
+                for _, _ in pairs(decoded) do
+                    activeCount = activeCount + 1
                 end
             end
 
